@@ -4,10 +4,35 @@
 #include "resource_manager.h"
 #include "save.h"
 
+#if defined(TA_DISABLE_AUDIO)
+
+void TA::sound::init() {}
+void TA::sound::quit() {}
+MIX_Mixer* TA::sound::getMixer() { return nullptr; }
+void TA::sound::playMusic(const std::string&, int) {}
+void TA::sound::update() {}
+bool TA::sound::isPlaying(TA_SoundChannel) { return false; }
+bool TA::sound::isMusicPlaying() { return false; }
+void TA::sound::fadeOut(int) {}
+void TA::sound::fadeOutMusic(int) {}
+void TA::sound::fadeOutChannel(TA_SoundChannel, int) {}
+
+void TA_Sound::load(const std::string&, TA_SoundChannel newChannel, bool newLoop) {
+    channel = newChannel;
+    loop = newLoop;
+    chunk = nullptr;
+}
+
+void TA_Sound::play() {}
+void TA_Sound::fadeOut(int) {}
+
+#else
+
 namespace {
     MIX_Mixer* mixer = nullptr;
     MIX_Track* musicTrack = nullptr;
     std::array<MIX_Track*, TA_SOUND_CHANNEL_MAX> channels{};
+    bool audioAvailable = false;
 
     float getVolumeGain(const std::string& parameter) {
         return static_cast<float>(TA::save::getParameter(parameter)) / 8.0F;
@@ -38,7 +63,8 @@ namespace {
 
 void TA::sound::init() {
     if(!MIX_Init()) {
-        TA::handleSDLError("%s", "SDL_mixer init failed");
+        SDL_Log("audio disabled: SDL_mixer init failed: %s", SDL_GetError());
+        return;
     }
 
     SDL_AudioSpec audioSpec;
@@ -48,29 +74,45 @@ void TA::sound::init() {
 
     mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audioSpec);
     if(mixer == nullptr) {
-        TA::handleSDLError("%s", "MIX_CreateMixerDevice failed");
+        SDL_Log("audio disabled: MIX_CreateMixerDevice failed: %s", SDL_GetError());
+        MIX_Quit();
+        return;
     }
 
     musicTrack = MIX_CreateTrack(mixer);
     if(musicTrack == nullptr) {
-        TA::handleSDLError("%s", "failed to create SDL_mixer music track");
+        SDL_Log("audio disabled: failed to create music track: %s", SDL_GetError());
+        MIX_DestroyMixer(mixer);
+        mixer = nullptr;
+        MIX_Quit();
+        return;
     }
 
     for(MIX_Track*& channel : channels) {
         channel = MIX_CreateTrack(mixer);
         if(channel == nullptr) {
-            TA::handleSDLError("%s", "failed to create SDL_mixer sound effect track");
+            SDL_Log("audio disabled: failed to create sound track: %s", SDL_GetError());
+            MIX_DestroyMixer(mixer);
+            mixer = nullptr;
+            musicTrack = nullptr;
+            channels.fill(nullptr);
+            MIX_Quit();
+            return;
         }
     }
 
-    update();
+    audioAvailable = true;
 }
 
 void TA::sound::quit() {
+    if(!audioAvailable) {
+        return;
+    }
     MIX_DestroyMixer(mixer);
     mixer = nullptr;
     musicTrack = nullptr;
     channels.fill(nullptr);
+    audioAvailable = false;
     MIX_Quit();
 }
 
@@ -79,9 +121,16 @@ MIX_Mixer* TA::sound::getMixer() {
 }
 
 void TA::sound::playMusic(const std::string& filename, int repeat) {
+    if(!audioAvailable || mixer == nullptr || musicTrack == nullptr) {
+        return;
+    }
     MIX_Audio* music = TA::resmgr::loadMusic(filename);
+    if(music == nullptr) {
+        return;
+    }
     if(!MIX_SetTrackAudio(musicTrack, music)) {
-        TA::handleSDLError("%s", "MIX_SetTrackAudio failed");
+        SDL_Log("audio warning: MIX_SetTrackAudio(music) failed: %s", SDL_GetError());
+        return;
     }
 
     SDL_PropertiesID options = createLoopOptions(repeat);
@@ -89,7 +138,8 @@ void TA::sound::playMusic(const std::string& filename, int repeat) {
         if(options != 0) {
             SDL_DestroyProperties(options);
         }
-        TA::handleSDLError("%s", "MIX_PlayTrack failed");
+        SDL_Log("audio warning: MIX_PlayTrack(music) failed: %s", SDL_GetError());
+        return;
     }
     if(options != 0) {
         SDL_DestroyProperties(options);
@@ -97,6 +147,9 @@ void TA::sound::playMusic(const std::string& filename, int repeat) {
 }
 
 void TA::sound::update() {
+    if(!audioAvailable || mixer == nullptr || musicTrack == nullptr) {
+        return;
+    }
     MIX_SetMixerGain(mixer, getVolumeGain("main_volume"));
     MIX_SetTrackGain(musicTrack, getVolumeGain("music_volume") * 0.6F);
     for(MIX_Track* channel : channels) {
@@ -105,10 +158,16 @@ void TA::sound::update() {
 }
 
 bool TA::sound::isPlaying(TA_SoundChannel channel) {
+    if(!audioAvailable) {
+        return false;
+    }
     return MIX_TrackPlaying(getChannel(channel));
 }
 
 bool TA::sound::isMusicPlaying() {
+    if(!audioAvailable || musicTrack == nullptr) {
+        return false;
+    }
     return MIX_TrackPlaying(musicTrack);
 }
 
@@ -120,10 +179,16 @@ void TA::sound::fadeOut(int time) {
 }
 
 void TA::sound::fadeOutMusic(int time) {
+    if(!audioAvailable || musicTrack == nullptr) {
+        return;
+    }
     MIX_StopTrack(musicTrack, fadeFrames(musicTrack, time));
 }
 
 void TA::sound::fadeOutChannel(TA_SoundChannel channel, int time) {
+    if(!audioAvailable) {
+        return;
+    }
     MIX_StopTrack(getChannel(channel), fadeFrames(getChannel(channel), time));
 }
 
@@ -138,8 +203,12 @@ void TA_Sound::play() {
         return;
     }
     MIX_Track* track = getChannel(channel);
+    if(track == nullptr) {
+        return;
+    }
     if(!MIX_SetTrackAudio(track, chunk)) {
-        TA::handleSDLError("%s", "MIX_SetTrackAudio failed");
+        SDL_Log("audio warning: MIX_SetTrackAudio(sfx) failed: %s", SDL_GetError());
+        return;
     }
 
     SDL_PropertiesID options = createLoopOptions(loop ? -1 : 0);
@@ -147,7 +216,8 @@ void TA_Sound::play() {
         if(options != 0) {
             SDL_DestroyProperties(options);
         }
-        TA::handleSDLError("%s", "MIX_PlayTrack failed");
+        SDL_Log("audio warning: MIX_PlayTrack(sfx) failed: %s", SDL_GetError());
+        return;
     }
     if(options != 0) {
         SDL_DestroyProperties(options);
@@ -155,5 +225,11 @@ void TA_Sound::play() {
 }
 
 void TA_Sound::fadeOut(int time) {
-    MIX_StopTrack(getChannel(channel), fadeFrames(getChannel(channel), time));
+    MIX_Track* track = getChannel(channel);
+    if(track == nullptr) {
+        return;
+    }
+    MIX_StopTrack(track, fadeFrames(track, time));
 }
+
+#endif

@@ -1,10 +1,12 @@
 #include "gamepad.h"
 #include <array>
 #include <string>
+#include "filesystem.h"
 #include "save.h"
 
 namespace TA::gamepad {
     void updateMapping();
+    bool openGamepad(SDL_JoystickID instanceId);
     bool isDpadPressed();
     TA_Point getDpadDirectionVector();
     TA_Point getStickDirectionVector();
@@ -28,25 +30,46 @@ bool TA::gamepad::oncePressed() {
 
 void TA::gamepad::handleEvent(SDL_GamepadDeviceEvent event) {
     if(event.type == SDL_EVENT_GAMEPAD_ADDED && !isConnected) {
-        isConnected = true;
-        init(event.which);
+        openGamepad(event.which);
     } else if(event.type == SDL_EVENT_GAMEPAD_REMOVED) {
         isConnected = false;
         quit();
     }
 }
 
-void TA::gamepad::init(int index) {
-    controller = SDL_OpenGamepad(index);
+bool TA::gamepad::openGamepad(SDL_JoystickID instanceId) {
+    controller = SDL_OpenGamepad(instanceId);
     if(controller == nullptr) {
+        SDL_Log("gamepad open failed for instance %d: %s", instanceId, SDL_GetError());
         isConnected = false;
-        return;
+        return false;
     } else {
         isConnected = true;
     }
 
-    SDL_AddGamepadMappingsFromFile("gamecontrollerdb.txt");
+    const auto mappingPath = (TA::filesystem::getAssetsPath() / "gamecontrollerdb.txt").generic_string();
+    if(SDL_AddGamepadMappingsFromFile(mappingPath.c_str()) < 0) {
+        SDL_Log("gamepad mapping load skipped: %s", SDL_GetError());
+    }
     updateMapping();
+    SDL_Log("gamepad connected: %s", SDL_GetGamepadName(controller));
+    return true;
+}
+
+void TA::gamepad::init() {
+    int count = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&count);
+    if(ids == nullptr || count <= 0) {
+        isConnected = false;
+        return;
+    }
+
+    for(int i = 0; i < count; ++i) {
+        if(openGamepad(ids[i])) {
+            break;
+        }
+    }
+    SDL_free(ids);
 }
 
 void TA::gamepad::updateMapping() {
@@ -171,5 +194,9 @@ void TA::gamepad::rumble(float lowFreqStrength, float highFreqStrength, int time
 }
 
 void TA::gamepad::quit() {
-    SDL_CloseGamepad(controller);
+    if(controller != nullptr) {
+        SDL_CloseGamepad(controller);
+        controller = nullptr;
+    }
+    isConnected = false;
 }

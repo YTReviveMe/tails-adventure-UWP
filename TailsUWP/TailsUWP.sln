@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TailsUWP", "uwp\TailsUWP.vcxproj", "{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL-UWP", "deps\SDL3-uwp-dev\VisualC-WinRT\SDL-UWP.vcxproj", "{89E9B32E-A86A-47C3-A948-D2B1622925CE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Debug|x64.ActiveCfg = Debug|x64
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Debug|x64.Build.0 = Debug|x64
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Debug|x64.Deploy.0 = Debug|x64
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Release|x64.ActiveCfg = Release|x64
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Release|x64.Build.0 = Release|x64
+		{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}.Release|x64.Deploy.0 = Release|x64
+		{89E9B32E-A86A-47C3-A948-D2B1622925CE}.Debug|x64.ActiveCfg = Debug|x64
+		{89E9B32E-A86A-47C3-A948-D2B1622925CE}.Debug|x64.Build.0 = Debug|x64
+		{89E9B32E-A86A-47C3-A948-D2B1622925CE}.Release|x64.ActiveCfg = Release|x64
+		{89E9B32E-A86A-47C3-A948-D2B1622925CE}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E291907E-D560-4EA6-A2F1-A90EF95013A4}
+	EndGlobalSection
+EndGlobal

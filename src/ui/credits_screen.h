@@ -1,6 +1,7 @@
 #ifndef TA_CREDITS_SCREEN_H
 #define TA_CREDITS_SCREEN_H
 
+#include <array>
 #include "font.h"
 #include "screen.h"
 #include "sound.h"

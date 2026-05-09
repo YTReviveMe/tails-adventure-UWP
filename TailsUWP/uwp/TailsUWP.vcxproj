@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7CA11AEF-4E67-4184-81B8-4E220E73ED4F}</ProjectGuid>
+    <Keyword>DirectXApp</Keyword>
+    <RootNamespace>TailsUWP</RootNamespace>
+    <ProjectName>TailsUWP</ProjectName>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <AppContainerApplication>true</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.17763.0</WindowsTargetPlatformMinVersion>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <ReplaceWildcardsInProjectItems>true</ReplaceWildcardsInProjectItems>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>v143</PlatformToolset>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\engine;$(SolutionDir)..\src\objects;$(SolutionDir)..\src\ui;$(SolutionDir)..\external\tmxpp\include;$(SolutionDir)..\external\tmxpp\external\tinyxml2;$(SolutionDir)..\external\toml11\include;$(SolutionDir)..\external\SDL_mixer\include;$(SolutionDir)..\external\SDL_mixer\src;$(SolutionDir)..\external\SDL_mixer\external\libgme;$(SolutionDir)..\external\SDL_mixer\external\libgme\gme;$(SolutionDir)deps\SDL3-uwp-dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_CRT_SECURE_NO_WARNINGS;SDL_PLATFORM_WINRT;DECODER_WAV;DECODER_AIFF;DECODER_VOC;DECODER_AU;DECODER_OGGVORBIS_STB;DECODER_MP3_DRMP3;DECODER_FLAC_DRFLAC;DECODER_GME;BLARGG_LITTLE_ENDIAN=1;VGM_YM2612_NUKED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>d2d1.lib;d3d11.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VCInstallDir)\lib\store\amd64;$(VCInstallDir)\lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/nodefaultlib:vccorlibd /nodefaultlib:msvcrtd vccorlibd.lib msvcrtd.lib %(AdditionalOptions)</AdditionalOptions>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
+xcopy /E /I /Y "$(SolutionDir)..\assets" "$(OutDir)assets\"
+copy /Y "$(SolutionDir)..\external\SDL_GameControllerDB\gamecontrollerdb.txt" "$(OutDir)assets\gamecontrollerdb.txt"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\src;$(SolutionDir)..\src\engine;$(SolutionDir)..\src\objects;$(SolutionDir)..\src\ui;$(SolutionDir)..\external\tmxpp\include;$(SolutionDir)..\external\tmxpp\external\tinyxml2;$(SolutionDir)..\external\toml11\include;$(SolutionDir)..\external\SDL_mixer\include;$(SolutionDir)..\external\SDL_mixer\src;$(SolutionDir)..\external\SDL_mixer\external\libgme;$(SolutionDir)..\external\SDL_mixer\external\libgme\gme;$(SolutionDir)deps\SDL3-uwp-dev\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_CRT_SECURE_NO_WARNINGS;SDL_PLATFORM_WINRT;DECODER_WAV;DECODER_AIFF;DECODER_VOC;DECODER_AU;DECODER_OGGVORBIS_STB;DECODER_MP3_DRMP3;DECODER_FLAC_DRFLAC;DECODER_GME;BLARGG_LITTLE_ENDIAN=1;VGM_YM2612_NUKED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>d2d1.lib;d3d11.lib;dxgi.lib;windowscodecs.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(VCInstallDir)\lib\store\amd64;$(VCInstallDir)\lib\amd64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/nodefaultlib:vccorlib /nodefaultlib:msvcrt vccorlib.lib msvcrt.lib %(AdditionalOptions)</AdditionalOptions>
+      <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)assets" mkdir "$(OutDir)assets"
+xcopy /E /I /Y "$(SolutionDir)..\assets" "$(OutDir)assets\"
+copy /Y "$(SolutionDir)..\external\SDL_GameControllerDB\gamecontrollerdb.txt" "$(OutDir)assets\gamecontrollerdb.txt"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Image Include="Assets\LockScreenLogo.scale-200.png" />
+    <Image Include="Assets\SplashScreen.scale-200.png" />
+    <Image Include="Assets\Square150x150Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.scale-200.png" />
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+    <Image Include="Assets\StoreLogo.png" />
+    <Image Include="Assets\Wide310x150Logo.scale-200.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxPackagePayload Include="..\..\assets\**\*">
+      <TargetPath>assets\%(RecursiveDir)%(Filename)%(Extension)</TargetPath>
+    </AppxPackagePayload>
+    <AppxPackagePayload Include="..\..\external\SDL_GameControllerDB\gamecontrollerdb.txt">
+      <TargetPath>assets\gamecontrollerdb.txt</TargetPath>
+    </AppxPackagePayload>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\deps\SDL3-uwp-dev\VisualC-WinRT\SDL-UWP.vcxproj">
+      <Project>{89E9B32E-A86A-47C3-A948-D2B1622925CE}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Remove="..\..\src\engine\main.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\external\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\SDL_mixer.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\SDL_mixer_metadata_tags.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\SDL_mixer_spatialization.c" />
+    <ClCompile Include="main.cpp">
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</CompileAsWinRT>
+      <CompileAsWinRT Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</CompileAsWinRT>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)uwp_main.obj</ObjectFileName>
+      <ObjectFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)uwp_main.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\engine\camera.cpp" />
+    <ClCompile Include="..\..\src\engine\character.cpp" />
+    <ClCompile Include="..\..\src\engine\character_collision.cpp" />
+    <ClCompile Include="..\..\src\engine\character_movement.cpp" />
+    <ClCompile Include="..\..\src\engine\character_tool.cpp" />
+    <ClCompile Include="..\..\src\engine\controller.cpp" />
+    <ClCompile Include="..\..\src\engine\filesystem.cpp" />
+    <ClCompile Include="..\..\src\engine\font.cpp" />
+    <ClCompile Include="..\..\src\engine\game.cpp" />
+    <ClCompile Include="..\..\src\engine\gamepad.cpp" />
+    <ClCompile Include="..\..\src\engine\game_screen.cpp" />
+    <ClCompile Include="..\..\src\engine\hitbox_container.cpp" />
+    <ClCompile Include="..\..\src\engine\keyboard.cpp" />
+    <ClCompile Include="..\..\src\engine\move_and_collide.cpp" />
+    <ClCompile Include="..\..\src\engine\object_set.cpp" />
+    <ClCompile Include="..\..\src\engine\onscreen_controller.cpp" />
+    <ClCompile Include="..\..\src\engine\resource_manager.cpp" />
+    <ClCompile Include="..\..\src\engine\save.cpp" />
+    <ClCompile Include="..\..\src\engine\screen_state_machine.cpp" />
+    <ClCompile Include="..\..\src\engine\sea_fox.cpp" />
+    <ClCompile Include="..\..\src\engine\sound.cpp" />
+    <ClCompile Include="..\..\src\engine\sprite.cpp" />
+    <ClCompile Include="..\..\src\engine\tilemap.cpp" />
+    <ClCompile Include="..\..\src\engine\tools.cpp" />
+    <ClCompile Include="..\..\src\engine\touchscreen.cpp" />
+    <ClCompile Include="..\..\src\objects\anti_air_missile.cpp" />
+    <ClCompile Include="..\..\src\objects\barrel.cpp" />
+    <ClCompile Include="..\..\src\objects\bat_robot.cpp" />
+    <ClCompile Include="..\..\src\objects\beehive.cpp" />
+    <ClCompile Include="..\..\src\objects\bird_walker.cpp" />
+    <ClCompile Include="..\..\src\objects\bomb.cpp" />
+    <ClCompile Include="..\..\src\objects\bomber.cpp" />
+    <ClCompile Include="..\..\src\objects\bomb_thrower.cpp" />
+    <ClCompile Include="..\..\src\objects\breakable_block.cpp" />
+    <ClCompile Include="..\..\src\objects\bridge.cpp" />
+    <ClCompile Include="..\..\src\objects\bullet.cpp" />
+    <ClCompile Include="..\..\src\objects\cannon_launcher.cpp" />
+    <ClCompile Include="..\..\src\objects\conveyor_belt.cpp" />
+    <ClCompile Include="..\..\src\objects\cruiser.cpp" />
+    <ClCompile Include="..\..\src\objects\dead_kukku.cpp" />
+    <ClCompile Include="..\..\src\objects\drill_mole.cpp" />
+    <ClCompile Include="..\..\src\objects\dr_fukurokov.cpp" />
+    <ClCompile Include="..\..\src\objects\electric_barrier.cpp" />
+    <ClCompile Include="..\..\src\objects\enemy_bomb.cpp" />
+    <ClCompile Include="..\..\src\objects\enemy_mine.cpp" />
+    <ClCompile Include="..\..\src\objects\explosion.cpp" />
+    <ClCompile Include="..\..\src\objects\fire.cpp" />
+    <ClCompile Include="..\..\src\objects\flame.cpp" />
+    <ClCompile Include="..\..\src\objects\grass_block.cpp" />
+    <ClCompile Include="..\..\src\objects\great_battle_kukku.cpp" />
+    <ClCompile Include="..\..\src\objects\heavy_gun.cpp" />
+    <ClCompile Include="..\..\src\objects\hover_pod.cpp" />
+    <ClCompile Include="..\..\src\objects\item_box.cpp" />
+    <ClCompile Include="..\..\src\objects\jumper.cpp" />
+    <ClCompile Include="..\..\src\objects\land_cutscene.cpp" />
+    <ClCompile Include="..\..\src\objects\large_bomb.cpp" />
+    <ClCompile Include="..\..\src\objects\little_kukku.cpp" />
+    <ClCompile Include="..\..\src\objects\mecha_golem.cpp" />
+    <ClCompile Include="..\..\src\objects\mecha_golem_bomb.cpp" />
+    <ClCompile Include="..\..\src\objects\mecha_golem_energy_shot.cpp" />
+    <ClCompile Include="..\..\src\objects\mecha_golem_mk2.cpp" />
+    <ClCompile Include="..\..\src\objects\mine.cpp" />
+    <ClCompile Include="..\..\src\objects\mine_launcher.cpp" />
+    <ClCompile Include="..\..\src\objects\mini_sub.cpp" />
+    <ClCompile Include="..\..\src\objects\moving_platform.cpp" />
+    <ClCompile Include="..\..\src\objects\napalm_fire.cpp" />
+    <ClCompile Include="..\..\src\objects\nezu.cpp" />
+    <ClCompile Include="..\..\src\objects\particle.cpp" />
+    <ClCompile Include="..\..\src\objects\pilot.cpp" />
+    <ClCompile Include="..\..\src\objects\pushable_object.cpp" />
+    <ClCompile Include="..\..\src\objects\remote_robot_blocker.cpp" />
+    <ClCompile Include="..\..\src\objects\ring.cpp" />
+    <ClCompile Include="..\..\src\objects\robo_kukku.cpp" />
+    <ClCompile Include="..\..\src\objects\rock_thrower.cpp" />
+    <ClCompile Include="..\..\src\objects\sliding_bomb.cpp" />
+    <ClCompile Include="..\..\src\objects\sniper.cpp" />
+    <ClCompile Include="..\..\src\objects\sparkle.cpp" />
+    <ClCompile Include="..\..\src\objects\speedy.cpp" />
+    <ClCompile Include="..\..\src\objects\speedy2.cpp" />
+    <ClCompile Include="..\..\src\objects\speedy2_electro.cpp" />
+    <ClCompile Include="..\..\src\objects\speedy2_fire.cpp" />
+    <ClCompile Include="..\..\src\objects\splash.cpp" />
+    <ClCompile Include="..\..\src\objects\transition.cpp" />
+    <ClCompile Include="..\..\src\objects\underwater_barrier.cpp" />
+    <ClCompile Include="..\..\src\objects\underwater_gun.cpp" />
+    <ClCompile Include="..\..\src\objects\walker.cpp" />
+    <ClCompile Include="..\..\src\objects\wind.cpp" />
+    <ClCompile Include="..\..\src\objects\wood.cpp" />
+    <ClCompile Include="..\..\src\ui\area_selector.cpp" />
+    <ClCompile Include="..\..\src\ui\credits_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\data_select_section.cpp" />
+    <ClCompile Include="..\..\src\ui\devmenu_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\game_over_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\house_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\hud.cpp" />
+    <ClCompile Include="..\..\src\ui\ingame_map.cpp" />
+    <ClCompile Include="..\..\src\ui\intro_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\inventory_menu.cpp" />
+    <ClCompile Include="..\..\src\ui\main_menu_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\map_screen.cpp" />
+    <ClCompile Include="..\..\src\ui\options_section.cpp" />
+    <ClCompile Include="..\..\src\ui\pause_menu.cpp" />
+    <ClCompile Include="..\..\src\ui\title_screen.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\abstract_layer.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\image.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\image_layer.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\layer.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\map.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\object.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\object_group.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\properties.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\text.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\tile.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\tileset.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\tile_layer.cpp" />
+    <ClCompile Include="..\..\external\tmxpp\src\utility.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ay_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ay_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ay_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Blip_Buffer.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Classic_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Data_Reader.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Dual_Resampler.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Effects_Buffer.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Fir_Resampler.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gbs_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gb_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gb_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gb_Oscs.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\gme.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gme_File.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Gym_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Hes_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Hes_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Hes_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Kss_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Kss_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Kss_Scc_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\M3u_Playlist.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Multi_Buffer.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Music_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Fds_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Fme7_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Namco_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Oscs.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Vrc6_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nes_Vrc7_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nsfe_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Nsf_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Sap_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Sap_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Sap_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Sms_Apu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Snes_Spc.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Spc_Cpu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Spc_Dsp.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Spc_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Spc_Filter.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Vgm_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Vgm_Emu_Impl.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ym2413_Emu.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ym2612_GENS.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ym2612_MAME.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\Ym2612_Nuked.cpp" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\ext\emu2413.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\external\libgme\gme\ext\panning.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_aiff.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_au.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_drflac.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_drmp3.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_flac.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_fluidsynth.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_gme.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_mpg123.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_opus.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_raw.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_sinewave.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_stb_vorbis.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_timidity.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_voc.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_vorbis.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_wav.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_wavpack.c" />
+    <ClCompile Include="..\..\external\SDL_mixer\src\decoder_xmp.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\deps\SDL3-uwp-dev\src\main\winrt\SDL3-WinRTResource_BlankCursor.cur" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\deps\SDL3-uwp-dev\src\main\winrt\SDL3-WinRTResources.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

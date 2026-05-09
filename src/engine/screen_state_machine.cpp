@@ -98,5 +98,7 @@ bool TA_ScreenStateMachine::update() {
 }
 
 TA_ScreenStateMachine::~TA_ScreenStateMachine() {
-    currentScreen->quit();
+    if(currentScreen != nullptr) {
+        currentScreen->quit();
+    }
 }
