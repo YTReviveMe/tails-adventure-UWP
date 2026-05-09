@@ -1,8 +1,14 @@
 #ifndef TA_SOUND_H
 #define TA_SOUND_H
 
-#include <SDL3_mixer/SDL_mixer.h>
 #include <string>
+
+#if !defined(TA_DISABLE_AUDIO)
+#include <SDL3_mixer/SDL_mixer.h>
+#else
+struct MIX_Audio;
+struct MIX_Mixer;
+#endif
 
 enum TA_SoundChannel { TA_SOUND_CHANNEL_SFX1, TA_SOUND_CHANNEL_SFX2, TA_SOUND_CHANNEL_SFX3, TA_SOUND_CHANNEL_MAX };
 

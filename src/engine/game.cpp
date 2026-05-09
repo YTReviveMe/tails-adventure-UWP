@@ -10,9 +10,15 @@
 #include "touchscreen.h"
 
 TA_Game::TA_Game() {
-    TA::save::load();
     initSDL();
+    TA::save::load();
+    TA::sound::update();
     createWindow();
+#ifdef SDL_PLATFORM_WINRT
+    SDL_InitSubSystem((SDL_InitFlags)(SDL_INIT_GAMEPAD | SDL_INIT_JOYSTICK));
+    SDL_InitSubSystem(SDL_INIT_HAPTIC);
+    SDL_InitSubSystem(SDL_INIT_SENSOR);
+#endif
     TA::random::init(std::chrono::high_resolution_clock::now().time_since_epoch().count());
     TA::gamepad::init();
     TA::resmgr::load();
@@ -24,10 +30,19 @@ TA_Game::TA_Game() {
 }
 
 void TA_Game::initSDL() {
+#ifdef SDL_PLATFORM_WINRT
+    SDL_SetHint(SDL_HINT_XINPUT_ENABLED, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_WGI, "1");
+    SDL_SetHint(SDL_HINT_JOYSTICK_GAMEINPUT, "1");
+    if(!SDL_Init((SDL_InitFlags)(SDL_INIT_VIDEO | SDL_INIT_EVENTS))) {
+        TA::handleSDLError("%s", "SDL init (video/events) failed");
+    }
+#else
     if(!SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO | SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_GAMEPAD |
                  SDL_INIT_EVENTS | SDL_INIT_SENSOR)) {
         TA::handleSDLError("%s", "SDL init failed");
     }
+#endif
     TA::sound::init();
     SDL_HideCursor();
 }
@@ -41,6 +56,9 @@ void TA_Game::createWindow() {
 #ifdef __APPLE__
     // FIXME: remove this once V-Sync is fixed on Metal renderer (likely an SDL issue)
     SDL_SetHintWithPriority(SDL_HINT_RENDER_DRIVER, "opengl,metal", SDL_HINT_DEFAULT);
+#endif
+#ifdef SDL_PLATFORM_WINRT
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "direct3d11,direct3d12");
 #endif
     TA::renderer = SDL_CreateRenderer(TA::window, nullptr);
     if(TA::renderer == nullptr) {
@@ -129,7 +147,6 @@ void TA_Game::update() {
         1e9F * 60;
 
     TA::elapsedTime = std::min(TA::elapsedTime, maxElapsedTime);
-    // TA::elapsedTime /= 10;
     startTime = currentTime;
 
     SDL_SetRenderTarget(TA::renderer, targetTexture);

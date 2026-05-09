@@ -8,6 +8,7 @@
 namespace TA {
     namespace save {
         void addOptionsFromFile(std::filesystem::path path);
+        void ensureDefaultOptions();
         std::filesystem::path getSaveFileName();
         std::map<std::string, long long> saveMap;
         std::string currentSave = "";
@@ -18,6 +19,64 @@ void TA::save::load() {
     std::filesystem::path defaultConfigPath = TA::filesystem::getAssetsPath() / "default_config";
     addOptionsFromFile(defaultConfigPath);
     addOptionsFromFile(getSaveFileName());
+    ensureDefaultOptions();
+}
+
+void TA::save::ensureDefaultOptions() {
+    auto setIfMissing = [](const std::string& key, long long value) {
+        if(!saveMap.contains(key)) {
+            saveMap[key] = value;
+        }
+    };
+
+    setIfMissing("base_height", 0);
+    setIfMissing("window_size", 4);
+    setIfMissing("pixel_ar", 1);
+    setIfMissing("vsync", 1);
+    setIfMissing("scale_mode", 0);
+    setIfMissing("hide_onscreen", 0);
+    setIfMissing("rumble", 1);
+    setIfMissing("frame_time", 0);
+    setIfMissing("main_volume", 8);
+    setIfMissing("music_volume", 8);
+    setIfMissing("sfx_volume", 8);
+    setIfMissing("ring_drop", 0);
+
+    setIfMissing("keyboard_map_up", 82);
+    setIfMissing("keyboard_map_down", 81);
+    setIfMissing("keyboard_map_left", 80);
+    setIfMissing("keyboard_map_right", 79);
+    setIfMissing("keyboard_map_a", 29);
+    setIfMissing("keyboard_map_b", 6);
+    setIfMissing("keyboard_map_lb", 4);
+    setIfMissing("keyboard_map_rb", 7);
+    setIfMissing("keyboard_map_start", 40);
+
+    setIfMissing("gamepad_map_a", 0);
+    setIfMissing("gamepad_map_b", 1);
+    setIfMissing("gamepad_map_lb", 9);
+    setIfMissing("gamepad_map_rb", 10);
+    setIfMissing("gamepad_map_start", 6);
+
+    setIfMissing("default_save/item_mask", 17);
+    setIfMissing("default_save/area_mask", 1099511627779LL);
+    setIfMissing("default_save/boss_mask", 0);
+    setIfMissing("default_save/rings", 12);
+    setIfMissing("default_save/item_slot0", 0);
+    setIfMissing("default_save/item_slot1", -1);
+    setIfMissing("default_save/item_slot2", -1);
+    setIfMissing("default_save/item_slot3", -1);
+    setIfMissing("default_save/item_position", 0);
+    setIfMissing("default_save/seafox", 0);
+    setIfMissing("default_save/seafox_item_slot0", 4);
+    setIfMissing("default_save/seafox_item_slot1", -1);
+    setIfMissing("default_save/seafox_item_slot2", -1);
+    setIfMissing("default_save/seafox_item_slot3", -1);
+    setIfMissing("default_save/seafox_item_position", 0);
+    setIfMissing("default_save/map_selection", 0);
+    setIfMissing("default_save/time", 0);
+    setIfMissing("default_save/last_unlocked", 1);
+    setIfMissing("default_save/underwater_barrier_passed", 0);
 }
 
 void TA::save::addOptionsFromFile(std::filesystem::path path) {
@@ -61,10 +120,12 @@ std::filesystem::path TA::save::getSaveFileName() {
         return std::filesystem::path(path) / "config";
     }
     return std::filesystem::path(SDL_GetAndroidInternalStoragePath()) / "config";
-#elifdef TA_UNIX_INSTALL
+#elif defined(TA_UNIX_INSTALL)
     std::filesystem::path path = std::filesystem::path(getenv("HOME")) / ".local/share/tails-adventure";
     std::filesystem::create_directories(path);
     return path / "config";
+#elif defined(SDL_PLATFORM_WINRT)
+    return TA::filesystem::getWritableDataPath() / "config";
 #else
     return TA::filesystem::getExecutableDirectory() / "config";
 #endif

@@ -10,6 +10,7 @@ namespace TA::filesystem {
     std::string readAsset(std::filesystem::path path);
     std::filesystem::path getAssetsPath();
     std::filesystem::path getExecutableDirectory();
+    std::filesystem::path getWritableDataPath();
     void writeFile(std::filesystem::path path, std::string value);
 }
 

@@ -8,7 +8,7 @@
 namespace TA {
     namespace gamepad {
         void handleEvent(SDL_GamepadDeviceEvent event);
-        void init(int index = 0);
+        void init();
         void update();
         bool connected();
         bool oncePressed();

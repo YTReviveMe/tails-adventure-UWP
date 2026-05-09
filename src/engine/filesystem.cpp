@@ -1,5 +1,7 @@
 #include "filesystem.h"
 #include <filesystem>
+#include <vector>
+#include "SDL3/SDL.h"
 #include "SDL3/SDL_iostream.h"
 #include "error.h"
 
@@ -28,25 +30,13 @@ bool TA::filesystem::fileExists(std::filesystem::path path) {
 
 std::string TA::filesystem::readFile(std::filesystem::path path) {
     std::string pathStr = path.string();
-    SDL_IOStream* file = SDL_IOFromFile(pathStr.c_str(), "rb");
-    if(file == nullptr) {
+    size_t dataBytes = 0;
+    char* data = (char*)SDL_LoadFile(pathStr.c_str(), &dataBytes);
+    if(data == nullptr) {
         TA::handleSDLError("open %s for read failed", path.c_str());
     }
-
-    size_t dataBytes = SDL_SeekIO(file, 0, SDL_IO_SEEK_END);
-    SDL_SeekIO(file, 0, SDL_IO_SEEK_SET);
-    char* data = new char[dataBytes];
-    SDL_ReadIO(file, data, dataBytes);
-
-    std::string str(dataBytes, 0);
-    for(int pos = 0; pos < dataBytes; pos++) {
-        str[pos] = data[pos];
-    }
-    delete[] data;
-
-    if(!SDL_CloseIO(file)) {
-        TA::handleSDLError("close %s after reading failed", path.c_str());
-    }
+    std::string str(data, dataBytes);
+    SDL_free(data);
     return str;
 }
 
@@ -55,9 +45,33 @@ std::string TA::filesystem::readAsset(std::filesystem::path path) {
 }
 
 std::filesystem::path TA::filesystem::getAssetsPath() {
+#ifdef SDL_PLATFORM_WINRT
+    static std::filesystem::path cached;
+    if(!cached.empty()) {
+        return cached;
+    }
+
+    const std::filesystem::path base = getExecutableDirectory();
+    const std::vector<std::filesystem::path> candidates{
+        base / "assets",
+        base / "AppX" / "assets",
+        std::filesystem::path("assets"),
+        std::filesystem::path("AppX") / "assets"};
+
+    for(const auto& candidate : candidates) {
+        if(fileExists(candidate / "default_config")) {
+            cached = candidate;
+            return cached;
+        }
+    }
+
+    cached = base / "assets";
+    return cached;
+#endif
+
 #ifdef __ANDROID__
     return "";
-#elifdef TA_UNIX_INSTALL
+#elif defined(TA_UNIX_INSTALL)
     return "/usr/local/share/tails-adventure";
 #else
     return getExecutableDirectory() / "assets";
@@ -65,7 +79,15 @@ std::filesystem::path TA::filesystem::getAssetsPath() {
 }
 
 std::filesystem::path TA::filesystem::getExecutableDirectory() {
-#ifdef _WIN32
+#ifdef SDL_PLATFORM_WINRT
+    const char* basePath = SDL_GetBasePath();
+    if(basePath == nullptr) {
+        TA::handleSDLError("%s", "failed to get base path");
+    }
+
+    std::filesystem::path path(basePath);
+    return path;
+#elif defined(_WIN32)
     char buffer[MAX_PATH];
     GetModuleFileName(NULL, buffer, MAX_PATH);
     std::string path(buffer);
@@ -84,11 +106,52 @@ std::filesystem::path TA::filesystem::getExecutableDirectory() {
 #endif
 }
 
+std::filesystem::path TA::filesystem::getWritableDataPath() {
+#ifdef SDL_PLATFORM_WINRT
+    const char* prefPath = SDL_GetPrefPath("", "tails-adventure");
+    if(prefPath != nullptr && prefPath[0] != '\0') {
+        std::filesystem::path path(prefPath);
+        SDL_free((void*)prefPath);
+        std::error_code dirError;
+        std::filesystem::create_directories(path, dirError);
+        if(!dirError) {
+            return path;
+        }
+        TA::printWarning("create writable pref path failed (%s), trying legacy path", dirError.message().c_str());
+    }
+
+    const char* legacyPrefPath = SDL_GetPrefPath("mechakotik", "tails-adventure");
+    if(legacyPrefPath != nullptr && legacyPrefPath[0] != '\0') {
+        std::filesystem::path legacyPath(legacyPrefPath);
+        SDL_free((void*)legacyPrefPath);
+        std::error_code legacyError;
+        std::filesystem::create_directories(legacyPath, legacyError);
+        if(!legacyError) {
+            return legacyPath;
+        }
+        TA::printWarning("legacy writable pref path failed (%s), using base path fallback", legacyError.message().c_str());
+    }
+
+    const char* basePath = SDL_GetBasePath();
+    if(basePath != nullptr && basePath[0] != '\0') {
+        return std::filesystem::path(basePath);
+    }
+    return ".";
+#else
+    return getExecutableDirectory();
+#endif
+}
+
 void TA::filesystem::writeFile(std::filesystem::path path, std::string value) {
     std::string pathStr = path.string();
     SDL_IOStream* file = SDL_IOFromFile(pathStr.c_str(), "wb");
     if(file == nullptr) {
+#ifdef SDL_PLATFORM_WINRT
+        TA::printWarning("open %s for write failed: %s", path.c_str(), SDL_GetError());
+        return;
+#else
         TA::handleSDLError("open %s for write failed", path.c_str());
+#endif
     }
 
     for(int pos = 0; pos < (int)value.size(); pos++) {
@@ -96,6 +159,10 @@ void TA::filesystem::writeFile(std::filesystem::path path, std::string value) {
     }
 
     if(!SDL_CloseIO(file)) {
+#ifdef SDL_PLATFORM_WINRT
+        TA::printWarning("close %s after writing failed: %s", path.c_str(), SDL_GetError());
+#else
         TA::handleSDLError("close %s after writing failed", path.c_str());
+#endif
     }
 }
