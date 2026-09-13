@@ -225,6 +225,7 @@ copy /Y "$(SolutionDir)..\external\SDL_GameControllerDB\gamecontrollerdb.txt" "$
     <ClCompile Include="..\..\src\ui\ingame_map.cpp" />
     <ClCompile Include="..\..\src\ui\intro_screen.cpp" />
     <ClCompile Include="..\..\src\ui\inventory_menu.cpp" />
+    <ClCompile Include="..\..\src\ui\item_ratio_screen.cpp" />
     <ClCompile Include="..\..\src\ui\main_menu_screen.cpp" />
     <ClCompile Include="..\..\src\ui\map_screen.cpp" />
     <ClCompile Include="..\..\src\ui\options_section.cpp" />

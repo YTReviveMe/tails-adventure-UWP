@@ -43,9 +43,8 @@ bool TA::gamepad::openGamepad(SDL_JoystickID instanceId) {
         SDL_Log("gamepad open failed for instance %d: %s", instanceId, SDL_GetError());
         isConnected = false;
         return false;
-    } else {
-        isConnected = true;
     }
+    isConnected = true;
 
     const auto mappingPath = (TA::filesystem::getAssetsPath() / "gamecontrollerdb.txt").generic_string();
     if(SDL_AddGamepadMappingsFromFile(mappingPath.c_str()) < 0) {
@@ -57,19 +56,19 @@ bool TA::gamepad::openGamepad(SDL_JoystickID instanceId) {
 }
 
 void TA::gamepad::init() {
-    int count = 0;
-    SDL_JoystickID* ids = SDL_GetGamepads(&count);
-    if(ids == nullptr || count <= 0) {
+    int gamepadCount = 0;
+    SDL_JoystickID* gamepads = SDL_GetGamepads(&gamepadCount);
+    if(gamepads == nullptr) {
         isConnected = false;
         return;
     }
 
-    for(int i = 0; i < count; ++i) {
-        if(openGamepad(ids[i])) {
+    for(int i = 0; i < gamepadCount; ++i) {
+        if(openGamepad(gamepads[i])) {
             break;
         }
     }
-    SDL_free(ids);
+    SDL_free(gamepads);
 }
 
 void TA::gamepad::updateMapping() {

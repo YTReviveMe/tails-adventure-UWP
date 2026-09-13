@@ -8,7 +8,7 @@
   <Identity
     Name="tails-adventure-uwp"
     Publisher="CN=TailsAdventureUwp"
-    Version="1.0.0.13" />
+    Version="1.0.0.14" />
 
   <mp:PhoneIdentity PhoneProductId="bcf63ef5-d2d6-4f41-9f40-864eff31e4c8" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
 

@@ -1,8 +1,8 @@
 #include "resource_manager.h"
 #include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <map>
-#include <set>
 #include <sstream>
 #include <unordered_map>
 #include "error.h"
@@ -32,15 +32,13 @@ namespace TA::resmgr {
     };
 
     void loadMods();
-    Mod loadMod(std::filesystem::path root, const std::map<std::string, bool>* iniEnabled = nullptr);
+    Mod loadMod(std::filesystem::path root, const std::map<std::string, bool>& configuredMods = {});
     std::filesystem::path getAssetPath(std::filesystem::path asset);
     std::vector<std::filesystem::path> getModRoots();
-    std::map<std::string, bool> ensureAndLoadExternalModIni(
+    std::map<std::string, bool> loadModConfig(
         const std::filesystem::path& modsRoot, const std::vector<std::filesystem::path>& modDirs);
     bool isEnabledByMarker(const std::filesystem::path& modRoot);
     std::string trim(std::string value);
-    std::string lowercase(std::string value);
-    bool isExternalModsRoot(const std::filesystem::path& path);
 
     void preloadTextures();
     void preloadChunks();
@@ -87,24 +85,21 @@ void TA::resmgr::loadMods() {
 
     const std::vector<std::filesystem::path> modRoots = getModRoots();
     std::vector<Mod> mods;
-    std::set<std::string> seenModDirs;
 
     for(const auto& modsPath : modRoots) {
-        std::error_code ec;
-        if(!std::filesystem::is_directory(modsPath, ec) || ec) {
+        std::error_code rootError;
+        if(!std::filesystem::is_directory(modsPath, rootError) || rootError) {
             continue;
         }
 
         std::vector<std::filesystem::path> modDirs;
-
-        const bool externalModsRootPath = isExternalModsRoot(modsPath);
-        std::error_code dirItError;
+        std::error_code iteratorError;
         std::filesystem::directory_iterator dirIt(
-            modsPath, std::filesystem::directory_options::skip_permission_denied, dirItError);
+            modsPath, std::filesystem::directory_options::skip_permission_denied, iteratorError);
         std::filesystem::directory_iterator dirEnd;
-        for(; dirIt != dirEnd; dirIt.increment(dirItError)) {
-            if(dirItError) {
-                dirItError.clear();
+        for(; dirIt != dirEnd; dirIt.increment(iteratorError)) {
+            if(iteratorError) {
+                iteratorError.clear();
                 continue;
             }
 
@@ -113,31 +108,16 @@ void TA::resmgr::loadMods() {
             if(!std::filesystem::is_directory(modPath, pathError) || pathError) {
                 continue;
             }
-
-            if(!externalModsRootPath) {
-                std::error_code enabledError;
-                if(!std::filesystem::is_regular_file(modPath / "enabled", enabledError) || enabledError) {
-                    continue;
-                }
-            }
-
-            const std::string key = modPath.lexically_normal().generic_string();
-            if(seenModDirs.contains(key)) {
-                continue;
-            }
-            seenModDirs.insert(key);
             modDirs.push_back(modPath);
         }
 
-        std::map<std::string, bool> iniEnabled;
-        const std::map<std::string, bool>* iniEnabledPtr = nullptr;
-        if(externalModsRootPath && !modDirs.empty()) {
-            iniEnabled = ensureAndLoadExternalModIni(modsPath, modDirs);
-            iniEnabledPtr = &iniEnabled;
+        std::map<std::string, bool> configuredMods;
+        if(modsPath == externalModsRoot && !modDirs.empty()) {
+            configuredMods = loadModConfig(modsPath, modDirs);
         }
 
         for(const auto& modDir : modDirs) {
-            mods.push_back(loadMod(modDir, iniEnabledPtr));
+            mods.push_back(loadMod(modDir, configuredMods));
         }
     }
 
@@ -154,23 +134,11 @@ void TA::resmgr::loadMods() {
         loaded.push_back(mod.root.filename().generic_string());
         loadedMods++;
         for(const std::filesystem::path& path : mod.files) {
-            std::filesystem::path relPath = path.lexically_relative(mod.root);
-            if(relPath.empty()) {
-                const std::string rootStr = mod.root.generic_string();
-                const std::string fileStr = path.generic_string();
-                if(fileStr.rfind(rootStr, 0) == 0) {
-                    size_t offset = rootStr.size();
-                    if(offset < fileStr.size() && (fileStr[offset] == '/' || fileStr[offset] == '\\')) {
-                        offset++;
-                    }
-                    relPath = std::filesystem::path(fileStr.substr(offset));
-                }
-            }
+            const std::filesystem::path relPath = path.lexically_relative(mod.root);
             if(relPath.empty()) {
                 continue;
             }
-            std::string rel = relPath.generic_string();
-            overrides[rel] = path;
+            overrides[relPath.generic_string()] = path;
         }
     }
 
@@ -182,17 +150,6 @@ void TA::resmgr::loadMods() {
         }
         TA::printLog("%s", log.c_str());
     }
-
-}
-
-bool TA::resmgr::isExternalModsRoot(const std::filesystem::path& path) {
-    return lowercase(path.lexically_normal().generic_string()) ==
-        lowercase(externalModsRoot.lexically_normal().generic_string());
-}
-
-std::string TA::resmgr::lowercase(std::string value) {
-    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return (char)std::tolower(c); });
-    return value;
 }
 
 std::string TA::resmgr::trim(std::string value) {
@@ -204,7 +161,8 @@ std::string TA::resmgr::trim(std::string value) {
 
 bool TA::resmgr::isEnabledByMarker(const std::filesystem::path& modRoot) {
     const std::filesystem::path enabledPath = modRoot / "enabled";
-    if(!std::filesystem::is_regular_file(enabledPath)) {
+    std::error_code markerError;
+    if(!std::filesystem::is_regular_file(enabledPath, markerError) || markerError) {
         return false;
     }
 
@@ -212,12 +170,13 @@ bool TA::resmgr::isEnabledByMarker(const std::filesystem::path& modRoot) {
     return !enabledValue.empty() && enabledValue.front() == '1';
 }
 
-std::map<std::string, bool> TA::resmgr::ensureAndLoadExternalModIni(
+std::map<std::string, bool> TA::resmgr::loadModConfig(
     const std::filesystem::path& modsRoot, const std::vector<std::filesystem::path>& modDirs) {
     std::map<std::string, bool> enabledMap;
     const std::filesystem::path iniPath = modsRoot / "mods.ini";
 
-    bool hadIni = std::filesystem::is_regular_file(iniPath);
+    std::error_code iniError;
+    const bool hadIni = std::filesystem::is_regular_file(iniPath, iniError) && !iniError;
     if(hadIni) {
         std::stringstream iniStream(TA::filesystem::readFile(iniPath));
         std::string line;
@@ -231,11 +190,14 @@ std::map<std::string, bool> TA::resmgr::ensureAndLoadExternalModIni(
                 continue;
             }
             std::string name = trim(line.substr(0, eq));
-            std::string value = trim(line.substr(eq + 1));
+            const std::string value = trim(line.substr(eq + 1));
             if(name.empty()) {
                 continue;
             }
-            enabledMap[name] = (value == "1" || lowercase(value) == "true" || lowercase(value) == "on");
+            std::string normalizedValue = value;
+            std::transform(normalizedValue.begin(), normalizedValue.end(), normalizedValue.begin(),
+                [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+            enabledMap[name] = normalizedValue == "1" || normalizedValue == "true" || normalizedValue == "on";
         }
     }
 
@@ -277,31 +239,19 @@ std::vector<std::filesystem::path> TA::resmgr::getModRoots() {
     return {"~/.local/share/tails-adventure/mods"};
 #elif defined(SDL_PLATFORM_WINRT)
     const std::filesystem::path writable = TA::filesystem::getWritableDataPath();
-    const std::filesystem::path executable = TA::filesystem::getExecutableDirectory();
-    return {
-        writable / "mods",
-        executable / "LocalState" / "mods",
-        "E:/TailsAdventureRemake/mods"};
+    return {writable / "mods", externalModsRoot};
 #else
     return {TA::filesystem::getExecutableDirectory() / "mods"};
 #endif
 }
 
-TA::resmgr::Mod TA::resmgr::loadMod(std::filesystem::path root, const std::map<std::string, bool>* iniEnabled) {
-    Mod mod = Mod();
+TA::resmgr::Mod TA::resmgr::loadMod(
+    std::filesystem::path root, const std::map<std::string, bool>& configuredMods) {
+    Mod mod{};
     mod.root = root;
 
-    if(iniEnabled != nullptr) {
-        const std::string modName = root.filename().generic_string();
-        auto iter = iniEnabled->find(modName);
-        if(iter != iniEnabled->end()) {
-            mod.enabled = iter->second;
-        } else {
-            mod.enabled = isEnabledByMarker(root);
-        }
-    } else {
-        mod.enabled = isEnabledByMarker(root);
-    }
+    const auto configured = configuredMods.find(root.filename().generic_string());
+    mod.enabled = configured != configuredMods.end() ? configured->second : isEnabledByMarker(root);
 
     if(!mod.enabled) {
         return mod;
@@ -324,9 +274,9 @@ TA::resmgr::Mod TA::resmgr::loadMod(std::filesystem::path root, const std::map<s
     }
     std::error_code priorityError;
     if(std::filesystem::is_regular_file(root / "priority", priorityError) && !priorityError) {
-        try {
-            mod.priority = std::stoi(TA::filesystem::readFile(root / "priority"));
-        } catch(...) {
+        const std::string priority = trim(TA::filesystem::readFile(root / "priority"));
+        const auto [end, error] = std::from_chars(priority.data(), priority.data() + priority.size(), mod.priority);
+        if(error != std::errc{} || end != priority.data() + priority.size()) {
             mod.priority = 0;
         }
     }

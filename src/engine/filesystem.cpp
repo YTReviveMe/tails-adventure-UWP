@@ -108,35 +108,20 @@ std::filesystem::path TA::filesystem::getExecutableDirectory() {
 
 std::filesystem::path TA::filesystem::getWritableDataPath() {
 #ifdef SDL_PLATFORM_WINRT
-    const char* prefPath = SDL_GetPrefPath("", "tails-adventure");
-    if(prefPath != nullptr && prefPath[0] != '\0') {
-        std::filesystem::path path(prefPath);
-        SDL_free((void*)prefPath);
-        std::error_code dirError;
-        std::filesystem::create_directories(path, dirError);
-        if(!dirError) {
-            return path;
-        }
-        TA::printWarning("create writable pref path failed (%s), trying legacy path", dirError.message().c_str());
+    char* prefPath = SDL_GetPrefPath("", "tails-adventure");
+    if(prefPath == nullptr || prefPath[0] == '\0') {
+        TA::handleSDLError("%s", "failed to get writable data path");
     }
 
-    const char* legacyPrefPath = SDL_GetPrefPath("mechakotik", "tails-adventure");
-    if(legacyPrefPath != nullptr && legacyPrefPath[0] != '\0') {
-        std::filesystem::path legacyPath(legacyPrefPath);
-        SDL_free((void*)legacyPrefPath);
-        std::error_code legacyError;
-        std::filesystem::create_directories(legacyPath, legacyError);
-        if(!legacyError) {
-            return legacyPath;
-        }
-        TA::printWarning("legacy writable pref path failed (%s), using base path fallback", legacyError.message().c_str());
-    }
+    std::filesystem::path path(prefPath);
+    SDL_free(prefPath);
 
-    const char* basePath = SDL_GetBasePath();
-    if(basePath != nullptr && basePath[0] != '\0') {
-        return std::filesystem::path(basePath);
+    std::error_code directoryError;
+    std::filesystem::create_directories(path, directoryError);
+    if(directoryError) {
+        TA::handleError("create writable data path failed: %s", directoryError.message().c_str());
     }
-    return ".";
+    return path;
 #else
     return getExecutableDirectory();
 #endif
